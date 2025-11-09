@@ -72,12 +72,17 @@ struct plat_boot_args {
 	uint8_t huk[PLAT_HW_UNIQUE_KEY_LENGTH];
 };
 
+/* Avoid the default implementation */
 void init_sec_mon(unsigned long nsec_entry)
+{
+}
+
+static TEE_Result early_init_sec_mon()
 {
 	struct plat_boot_args *plat_boot_args;
 	struct sm_nsec_ctx *nsec_ctx;
 
-	plat_boot_args = phys_to_virt(nsec_entry, MEM_AREA_IO_SEC, 1);
+	plat_boot_args = phys_to_virt(boot_arg_nsec_entry, MEM_AREA_IO_SEC, 1);
 	if (!plat_boot_args)
 		panic();
 
@@ -106,7 +111,9 @@ void init_sec_mon(unsigned long nsec_entry)
 	nsec_ctx->mon_spsr = plat_boot_args->nsec_ctx.mon_spsr;
 
 	memcpy(plat_huk, plat_boot_args->huk, sizeof(plat_boot_args->huk));
+	return TEE_SUCCESS;
 }
+early_init_late(early_init_sec_mon);
 
 void plat_console_init(void)
 {
